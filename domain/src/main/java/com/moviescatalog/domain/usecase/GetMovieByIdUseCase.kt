@@ -8,11 +8,5 @@ import javax.inject.Inject
 interface GetMovieByIdUseCase {
     suspend operator fun invoke(movieId: Int): Result<Movie>
 }
-class GetMovieByIdUseCaseImpl @Inject constructor(
-    private val repository: MovieRepository
-) : GetMovieByIdUseCase {
 
-    override suspend fun invoke(movieId: Int): Result<Movie> {
-        return repository.getMovieById(movieId)
-    }
-}
+

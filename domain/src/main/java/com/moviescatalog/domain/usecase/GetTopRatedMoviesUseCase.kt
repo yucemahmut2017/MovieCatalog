@@ -9,10 +9,3 @@ import javax.inject.Inject
 interface GetTopRatedMoviesUseCase {
     suspend operator fun invoke(page: Int): Result<List<Movie>>
 }
-class GetTopRatedMoviesUseCaseImpl @Inject constructor(
-    private val repository: MovieRepository
-) : GetTopRatedMoviesUseCase {
-    override suspend fun invoke(page: Int): Result<List<Movie>>{
-        return repository.getMovies("vote_average.desc", page)
-    }
-}

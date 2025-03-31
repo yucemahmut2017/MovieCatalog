@@ -11,6 +11,7 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.compileSdk.get().toInt()
         buildConfigField("String", "TMDB_API_KEY", "\"7a07a6c0e2f26829c38f3aeb0793fa43\"")
     }
     buildFeatures {

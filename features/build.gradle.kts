@@ -7,15 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.myuce.moviescatalogs"
+    namespace = "com.moviescatalog.features"
     compileSdk = libs.versions.compileSdk.get().toInt()
-
     defaultConfig {
-        applicationId = "com.myuce.moviescatalogs"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.compileSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,9 +31,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
     }
 }
 
@@ -65,12 +58,13 @@ dependencies {
     // OkHttp Logging
     implementation(libs.okhttpLogging)
 
-    implementation(libs.androidx.material.icons.extended)
-    implementation(libs.accompanist.systemuicontroller)
-
     // Coil
     implementation(libs.coil)
 
+    // ExoPlayer (Media3)
+    implementation(libs.media3Exoplayer)
+    implementation(libs.media3Ui)
+
     implementation(project(":core:util"))
-    implementation(project(":features"))
+    implementation(project(":domain"))
 }

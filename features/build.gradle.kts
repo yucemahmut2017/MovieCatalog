@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt)
@@ -67,4 +67,5 @@ dependencies {
 
     implementation(project(":core:util"))
     implementation(project(":domain"))
+    implementation(project(":core:di"))
 }

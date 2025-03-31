@@ -1,39 +1,42 @@
 package com.moviescatalog.core.di
 
+import com.moviescatalog.data.usecase.GetMovieByIdUseCaseImpl
+import com.moviescatalog.data.usecase.GetPopularMoviesUseCaseImpl
+import com.moviescatalog.data.usecase.GetTopRatedMoviesUseCaseImpl
+import com.moviescatalog.data.usecase.GetTopRevenueMoviesUseCaseImpl
+import com.moviescatalog.domain.repository.MovieRepository
 import com.moviescatalog.domain.usecase.GetMovieByIdUseCase
-import com.moviescatalog.domain.usecase.GetMovieByIdUseCaseImpl
 import com.moviescatalog.domain.usecase.GetPopularMoviesUseCase
-import com.moviescatalog.domain.usecase.GetPopularMoviesUseCaseImpl
 import com.moviescatalog.domain.usecase.GetTopRatedMoviesUseCase
-import com.moviescatalog.domain.usecase.GetTopRatedMoviesUseCaseImpl
 import com.moviescatalog.domain.usecase.GetTopRevenueMoviesUseCase
-import com.moviescatalog.domain.usecase.GetTopRevenueMoviesUseCaseImpl
-import dagger.Binds
+
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class UseCaseModule {
+object UseCaseModule {
 
-    @Binds
-    abstract fun bindGetPopularMoviesUseCase(
-        impl: GetPopularMoviesUseCaseImpl
-    ): GetPopularMoviesUseCase
+    @Provides
+    fun provideGetMovieByIdUseCase(
+        repository: MovieRepository
+    ): GetMovieByIdUseCase = GetMovieByIdUseCaseImpl(repository)
 
-    @Binds
-    abstract fun bindGetTopRevenueMoviesUseCase(
-        impl: GetTopRevenueMoviesUseCaseImpl
-    ): GetTopRevenueMoviesUseCase
+    @Provides
+    fun provideGetPopularMoviesUseCase(
+        repository: MovieRepository
+    ): GetPopularMoviesUseCase = GetPopularMoviesUseCaseImpl(repository)
 
-    @Binds
-    abstract fun bindGetTopRatedMoviesUseCase(
-        impl: GetTopRatedMoviesUseCaseImpl
-    ): GetTopRatedMoviesUseCase
+    @Provides
+    fun provideGetTopRatedMoviesUseCase(
+        repository: MovieRepository
+    ): GetTopRatedMoviesUseCase = GetTopRatedMoviesUseCaseImpl(repository)
 
-    @Binds
-    abstract fun bindGetMovieByIdUseCase(
-        impl: GetMovieByIdUseCaseImpl
-    ): GetMovieByIdUseCase
+    @Provides
+    fun provideGetTopRevenueMoviesUseCase(
+        repository: MovieRepository
+    ): GetTopRevenueMoviesUseCase = GetTopRevenueMoviesUseCaseImpl(repository)
 }
+

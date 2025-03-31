@@ -27,3 +27,5 @@ include(":core:di")
 include(":data")
 include(":domain")
 include(":core:util")
+
+include(":features")

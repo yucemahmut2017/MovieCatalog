@@ -1,7 +1,13 @@
 package com.moviescatalog.features.presentation
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
+import android.widget.Toast
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,24 +36,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.moviescatalog.core.util.DateUtils
 import com.moviescatalog.domain.model.Movie
 import com.moviescatalog.features.R
 import com.moviescatalog.features.viewmodel.MovieDetailViewModel
 import java.util.Locale
 
-
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 @Composable
 private fun MovieDetailContent(
     movie: Movie,
     navController: NavController,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    context: Context // Pass context to check internet connection
 ) {
     Column(
         modifier = Modifier
@@ -56,7 +66,7 @@ private fun MovieDetailContent(
     ) {
         MovieBackdrop(movie)
         MovieOverview(movie)
-        PlayMovieButton(movie, navController)
+        PlayMovieButton(movie, navController, context) // Pass context to PlayMovieButton
     }
 }
 
@@ -69,21 +79,28 @@ private fun MovieBackdrop(movie: Movie) {
     ) {
         Image(
             painter = rememberAsyncImagePainter(
-                model = movie.backdropUrl,
-                error = painterResource(id = R.drawable.no_background)
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(movie.backdropUrl)
+                    .crossfade(true)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .error(R.drawable.no_background)
+                    .placeholder(R.drawable.no_background)
+                    .build()
             ),
-            contentDescription = null,
+            contentDescription = "Movie Backdrop",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
 
+
+        // Movie Title and Rating
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(start = 12.dp, bottom = 12.dp)
         ) {
             Text(
-                text = movie.title ?: "",
+                text = movie.title.orEmpty(), // Default empty string if title is null
                 style = MaterialTheme.typography.titleSmall,
                 color = Color.White
             )
@@ -93,6 +110,7 @@ private fun MovieBackdrop(movie: Movie) {
             }
         }
 
+        // Movie Release Date
         movie.releaseDate?.let {
             Text(
                 text = DateUtils.formatReleaseDate(it),
@@ -106,6 +124,7 @@ private fun MovieBackdrop(movie: Movie) {
         }
     }
 }
+
 
 @Composable
 private fun RatingRow(rating: Double) {
@@ -137,16 +156,20 @@ private fun MovieOverview(movie: Movie) {
         )
     }
 }
-
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 @Composable
-private fun PlayMovieButton(movie: Movie, navController: NavController) {
+private fun PlayMovieButton(movie: Movie, navController: NavController, context: Context) {
     Spacer(modifier = Modifier.height(8.dp))
     Button(
         onClick = {
-            val encodedTitle = Uri.encode(movie.title ?: "now")
-            val encodedDesc =
-                Uri.encode(movie.overview.takeIf { it?.isNotBlank() == true } ?: "now")
-            navController.navigate("player/$encodedTitle/$encodedDesc")
+            if (isInternetAvailable(context)) {
+                val encodedTitle = Uri.encode(movie.title ?: "now")
+                val encodedDesc =
+                    Uri.encode(movie.overview.takeIf { it?.isNotBlank() == true } ?: "now")
+                navController.navigate("player/$encodedTitle/$encodedDesc")
+            } else {
+                Toast.makeText(context, "No internet connection!", Toast.LENGTH_SHORT).show()
+            }
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -156,15 +179,17 @@ private fun PlayMovieButton(movie: Movie, navController: NavController) {
     }
 }
 
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 @SuppressLint("DefaultLocale")
 @Composable
 fun MovieDetailScreen(
     movieId: Int,
     viewModel: MovieDetailViewModel = hiltViewModel(),
     navController: NavController,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(movieId) {
         viewModel.loadMovie(movieId)
@@ -172,6 +197,18 @@ fun MovieDetailScreen(
 
     when (val movie = uiState) {
         null -> LoadingScreen()
-        else -> MovieDetailContent(movie, navController, paddingValues)
+        else -> MovieDetailContent(movie, navController, paddingValues, context)
+    }
+}
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+fun isInternetAvailable(context: Context): Boolean {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val networkCapabilities = connectivityManager.activeNetwork ?: return false
+    val actNetwork = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+    return when {
+        actNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+        actNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+        actNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+        else -> false
     }
 }

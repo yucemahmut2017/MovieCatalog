@@ -3,19 +3,16 @@
 ## 📖 Introduction
 MoviesCatalog is a modularized Android app showcasing modern Android development with a clean architecture approach. The app fetches movie data from a remote API, organizes it with a domain layer, and presents it via a Jetpack Compose-based UI. This repository is intended as a learning tool and a real-world example of best practices in Android development.
 
----
 
 ## 📁 Project Structure
 ```
 com.moviescatalog
-├── app                 # Application setup and entry point
-├── core                # Reusable code: DI modules, utils
-├── data                # Repository, remote sources, data mappers
-├── domain              # Business logic: models, use cases, interfaces
-├── features            # Presentation layer: UI, ViewModels, Navigation
-```
+├── app              # Application setup and entry point
+├── core             # Reusable components (DI modules, utilities, extensions, etc.)
+├── data             # Data layer (repositories, remote sources, mappers, unit tests, offline cache)
+├── domain           # Business logic (use cases, domain models, interfaces)
+├── features         # Presentation layer (UI, ViewModels, Navigation)
 
----
 
 ## 📄 Architecture
 **Model-View-ViewModel (MVVM)** combined with **Clean Architecture** principles.
@@ -95,12 +92,12 @@ This project is ideal for Android developers who want to:
 
 ---
 
-## 💡 Future Improvements
-- Add Room for local caching
-- Add Pagination for movie lists
-- Implement UI tests with Espresso / Compose Testing
-- Improve error handling and retry mechanisms
+## ✅ Completed Improvements
 
+- ✅ Added Room for local data caching
+- ✅ Extended offline support (Room + Coil disk cache)
+- ✅ Implemented pagination for movie lists
+- ✅ Added unit tests for repository and use case layers
 ---
 
 ## 👥 Contributors

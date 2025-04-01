@@ -1,11 +1,13 @@
 package com.moviescatalog.core.di
 
 import com.moviescatalog.data.usecase.GetMovieByIdUseCaseImpl
+import com.moviescatalog.data.usecase.GetMoviesByReleaseDateUseCaseImpl
 import com.moviescatalog.data.usecase.GetPopularMoviesUseCaseImpl
 import com.moviescatalog.data.usecase.GetTopRatedMoviesUseCaseImpl
 import com.moviescatalog.data.usecase.GetTopRevenueMoviesUseCaseImpl
 import com.moviescatalog.domain.repository.MovieRepository
 import com.moviescatalog.domain.usecase.GetMovieByIdUseCase
+import com.moviescatalog.domain.usecase.GetMoviesByReleaseDateUseCase
 import com.moviescatalog.domain.usecase.GetPopularMoviesUseCase
 import com.moviescatalog.domain.usecase.GetTopRatedMoviesUseCase
 import com.moviescatalog.domain.usecase.GetTopRevenueMoviesUseCase
@@ -38,5 +40,10 @@ object UseCaseModule {
     fun provideGetTopRevenueMoviesUseCase(
         repository: MovieRepository
     ): GetTopRevenueMoviesUseCase = GetTopRevenueMoviesUseCaseImpl(repository)
+
+    @Provides
+    fun provideGetMoviesByReleaseDateUseCase(
+        repository: MovieRepository
+    ): GetMoviesByReleaseDateUseCase = GetMoviesByReleaseDateUseCaseImpl(repository)
 }
 

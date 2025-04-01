@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moviescatalog.domain.model.Movie
 import com.moviescatalog.domain.model.MovieCategory
+import com.moviescatalog.domain.usecase.GetMoviesByReleaseDateUseCase
 import com.moviescatalog.domain.usecase.GetPopularMoviesUseCase
 import com.moviescatalog.domain.usecase.GetTopRatedMoviesUseCase
 import com.moviescatalog.domain.usecase.GetTopRevenueMoviesUseCase
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class MovieListViewModel @Inject constructor(
     private val getPopularMoviesUseCase: GetPopularMoviesUseCase,
     private val getTopRevenueMoviesUseCase: GetTopRevenueMoviesUseCase,
-    private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase
+    private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
+    private val getMoviesByReleaseDateUseCase: GetMoviesByReleaseDateUseCase,
 ) : ViewModel() {
 
     // Global loading state to indicate initial data fetching
@@ -27,14 +29,16 @@ class MovieListViewModel @Inject constructor(
     private val _pageByCategory = mutableMapOf(
         MovieCategory.POPULAR to 1,
         MovieCategory.REVENUE to 1,
-        MovieCategory.TOP_RATED to 1
+        MovieCategory.TOP_RATED to 1,
+        MovieCategory.RELEASE_DATE to 1,
     )
 
     // Map to manage the loading state for each movie category
     private val _isLoadingByCategory = mutableMapOf(
         MovieCategory.POPULAR to MutableStateFlow(false),
         MovieCategory.REVENUE to MutableStateFlow(false),
-        MovieCategory.TOP_RATED to MutableStateFlow(false)
+        MovieCategory.TOP_RATED to MutableStateFlow(false),
+        MovieCategory.RELEASE_DATE to MutableStateFlow(false),
     )
 
     // Publicly exposed immutable map of loading states
@@ -44,7 +48,9 @@ class MovieListViewModel @Inject constructor(
     private val _moviesByCategory = mutableMapOf(
         MovieCategory.POPULAR to MutableStateFlow(emptyList<Movie>()),
         MovieCategory.REVENUE to MutableStateFlow(emptyList()),
-        MovieCategory.TOP_RATED to MutableStateFlow(emptyList())
+        MovieCategory.TOP_RATED to MutableStateFlow(emptyList()),
+        MovieCategory.RELEASE_DATE to MutableStateFlow(emptyList()),
+
     )
 
     // Publicly exposed immutable map of movie lists
@@ -87,6 +93,7 @@ class MovieListViewModel @Inject constructor(
                 MovieCategory.POPULAR -> getPopularMoviesUseCase(currentPage)
                 MovieCategory.REVENUE -> getTopRevenueMoviesUseCase(currentPage)
                 MovieCategory.TOP_RATED -> getTopRatedMoviesUseCase(currentPage)
+                MovieCategory.RELEASE_DATE -> getMoviesByReleaseDateUseCase(currentPage)
             }
 
             result.onSuccess { newMovies ->

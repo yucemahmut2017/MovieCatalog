@@ -9,8 +9,8 @@ fun MovieDTO.toDomainModel(): Movie {
         id = id,
         title = title,
         overview = overview,
-        posterUrl = posterPath?.let { Constants.IMAGE_BASE_URL + it },
-        backdropUrl = backdropPath?.let { Constants.IMAGE_BASE_URL + it },
+        posterUrl = posterPath?.takeIf { it.isNotBlank() }?.let { Constants.IMAGE_BASE_URL + it },
+        backdropUrl = backdropPath?.takeIf { it.isNotBlank() }?.let { Constants.IMAGE_BASE_URL + it },
         rating = voteAverage,
         releaseDate = releaseDate
     )

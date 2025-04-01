@@ -1,6 +1,8 @@
+
 package com.moviescatalog.features.presentation
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,9 +35,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.moviescatalog.core.util.DateUtils
-
 import com.moviescatalog.features.R
 import com.moviescatalog.features.viewmodel.MovieDetailViewModel
 import java.util.Locale
@@ -43,7 +46,8 @@ import java.util.Locale
 @Composable
 fun MovieDetailScreen(
     movieId: Int,
-    viewModel: MovieDetailViewModel = hiltViewModel()
+    viewModel: MovieDetailViewModel = hiltViewModel(),
+    navController: NavController
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -119,6 +123,29 @@ fun MovieDetailScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(12.dp)
             )
+
+
+            Text(
+                text = movie.overview,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    val encodedTitle = Uri.encode(movie.title)
+                    val encodedDesc = Uri.encode(movie.overview)
+                    navController.navigate("player/$encodedTitle/$encodedDesc")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+            ) {
+                Text(text = "Play Movie")
+            }
+
         }
     } ?: run {
         Box(

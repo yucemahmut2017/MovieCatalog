@@ -1,77 +1,87 @@
-
 package com.moviescatalog.features.presentation
 
+
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.LaunchedEffect
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.common.C
-import androidx.media3.exoplayer.drm.DefaultDrmSessionManagerProvider
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import android.app.Activity
-import android.content.pm.ActivityInfo
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.FullscreenExit
-import androidx.compose.material3.*
-import androidx.compose.ui.graphics.Color
-
-
-import androidx.media3.datasource.DefaultDataSource
-import androidx.core.net.toUri
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.media3.common.Player
-import androidx.navigation.NavController
-import androidx.compose.ui.platform.LocalConfiguration
-import android.content.res.Configuration
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PictureInPicture
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RotateLeft
 import androidx.compose.material.icons.filled.RotateRight
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.drm.DefaultDrmSessionManagerProvider
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.PlayerView
+import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.moviescatalog.core.util.FormatDuration
+import kotlinx.coroutines.delay
+
 
 @OptIn(UnstableApi::class)
 @Composable
 fun PlayerScreen(
-    movieTitle: String,
-    movieDescription: String,
+    movieTitle: String?,
+    movieDescription: String?,
     navController: NavController,
-    modifier: Modifier = Modifier
+    padding: PaddingValues
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -80,6 +90,7 @@ fun PlayerScreen(
     val systemUiController = rememberSystemUiController()
     val activity = context as Activity
 
+    // Create and initialize ExoPlayer instance with DRM support
     val exoPlayer = remember {
         val mediaSourceFactory = DefaultMediaSourceFactory(
             DefaultDataSource.Factory(context)
@@ -107,6 +118,7 @@ fun PlayerScreen(
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(0L) }
 
+    // Track current position and duration
     LaunchedEffect(exoPlayer) {
         while (true) {
             position = exoPlayer.currentPosition
@@ -115,21 +127,24 @@ fun PlayerScreen(
         }
     }
 
+    // Listener for video end
     LaunchedEffect(Unit) {
         exoPlayer.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
                 if (state == Player.STATE_ENDED) {
-                    Toast.makeText(context, "Video bitti 🎉", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Video finished 🎉", Toast.LENGTH_SHORT).show()
                 }
             }
         })
     }
 
+    // Handle back press
     BackHandler {
         exoPlayer.playWhenReady = false
         navController.popBackStack()
     }
 
+    // Pause/resume on lifecycle changes
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -144,23 +159,19 @@ fun PlayerScreen(
         }
     }
 
+    // Release player when leaving screen
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()
         }
     }
 
+    // Hide/show system bars based on orientation
     SideEffect {
         systemUiController.isSystemBarsVisible = !isLandscape
     }
 
-    @SuppressLint("DefaultLocale")
-    fun formatDuration(millis: Long): String {
-        val totalSeconds = millis / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return String.format("%d:%02d", minutes, seconds)
-    }
+
 
     @Composable
     fun BoxScope.PlayerControls(onFullscreenToggle: () -> Unit) {
@@ -184,7 +195,7 @@ fun PlayerScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "-${formatDuration(duration - position)}",
+                text = "-${FormatDuration(duration - position)}",
                 color = Color.White,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -198,6 +209,7 @@ fun PlayerScreen(
             }
         }
     }
+
     @Composable
     fun BoxScope.TopBar() {
         Row(
@@ -215,20 +227,27 @@ fun PlayerScreen(
                 tint = Color.White
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = movieTitle,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = movieTitle,
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                movieTitle?.let {
+                    Text(
+                        text = it,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = it,
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
             IconButton(onClick = {
                 exoPlayer.playWhenReady = false
-                navController.popBackStack()
+                // If in landscape, switch to portrait instead of navigating back
+                if (isLandscape) {
+                    activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                } else {
+                    navController.popBackStack()
+                }
             }) {
                 Icon(
                     imageVector = Icons.Default.Close,
@@ -276,6 +295,7 @@ fun PlayerScreen(
     }
 
     if (isLandscape) {
+        // Fullscreen video in landscape mode
         Box(modifier = Modifier.fillMaxSize()) {
             AndroidView(
                 factory = {
@@ -293,10 +313,12 @@ fun PlayerScreen(
             }
         }
     } else {
+        // Regular portrait mode with description below player
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(padding)
         ) {
             Box(
                 modifier = Modifier
@@ -320,16 +342,20 @@ fun PlayerScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = movieTitle,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Text(
-                text = movieDescription,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            movieTitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+            movieDescription?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
         }
     }
 }

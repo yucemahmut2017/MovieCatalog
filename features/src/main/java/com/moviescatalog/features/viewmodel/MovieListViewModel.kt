@@ -20,37 +20,86 @@ class MovieListViewModel @Inject constructor(
     private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase
 ) : ViewModel() {
 
-    private val _moviesByCategory = mutableMapOf<MovieCategory, MutableStateFlow<List<Movie>>>(
-        MovieCategory.POPULAR to MutableStateFlow(emptyList()),
+    // Global loading state to indicate initial data fetching
+    val isLoading = MutableStateFlow(true)
+
+    // Map to keep track of the current page number for each movie category
+    private val _pageByCategory = mutableMapOf(
+        MovieCategory.POPULAR to 1,
+        MovieCategory.REVENUE to 1,
+        MovieCategory.TOP_RATED to 1
+    )
+
+    // Map to manage the loading state for each movie category
+    private val _isLoadingByCategory = mutableMapOf(
+        MovieCategory.POPULAR to MutableStateFlow(false),
+        MovieCategory.REVENUE to MutableStateFlow(false),
+        MovieCategory.TOP_RATED to MutableStateFlow(false)
+    )
+
+    // Publicly exposed immutable map of loading states
+    val isLoadingByCategory: Map<MovieCategory, StateFlow<Boolean>> = _isLoadingByCategory
+
+    // Map to store the list of movies for each category
+    private val _moviesByCategory = mutableMapOf(
+        MovieCategory.POPULAR to MutableStateFlow(emptyList<Movie>()),
         MovieCategory.REVENUE to MutableStateFlow(emptyList()),
         MovieCategory.TOP_RATED to MutableStateFlow(emptyList())
     )
 
+    // Publicly exposed immutable map of movie lists
     val moviesByCategory: Map<MovieCategory, StateFlow<List<Movie>>> = _moviesByCategory
 
     init {
-        fetchAll()
+        // Fetch initial data for all categories
+        fetchAllInitial()
     }
 
-    private fun fetchAll(page: Int = 1) {
-        MovieCategory.entries.forEach { category ->
-            fetchMoviesByCategory(category, page)
+    /**
+     * Fetches the initial set of movies for all categories.
+     * Sets the global loading state to true during the fetch.
+     */
+    private fun fetchAllInitial() {
+        viewModelScope.launch {
+            isLoading.value = true
+            MovieCategory.entries.forEach { category ->
+                fetchNextPage(category)
+            }
+            isLoading.value = false
         }
     }
 
-    private fun fetchMoviesByCategory(category: MovieCategory, page: Int) {
+    /**
+     * Fetches the next page of movies for the specified category.
+     * Prevents duplicate fetches by checking the loading state.
+     *
+     * @param category The movie category for which to fetch the next page.
+     */
+    fun fetchNextPage(category: MovieCategory) {
+        val isLoadingFlow = _isLoadingByCategory[category] ?: return
+        if (isLoadingFlow.value) return
+
+        val currentPage = _pageByCategory[category] ?: 1
+        isLoadingFlow.value = true
+
         viewModelScope.launch {
             val result = when (category) {
-                MovieCategory.POPULAR -> getPopularMoviesUseCase(page)
-                MovieCategory.REVENUE -> getTopRevenueMoviesUseCase(page)
-                MovieCategory.TOP_RATED -> getTopRatedMoviesUseCase(page)
+                MovieCategory.POPULAR -> getPopularMoviesUseCase(currentPage)
+                MovieCategory.REVENUE -> getTopRevenueMoviesUseCase(currentPage)
+                MovieCategory.TOP_RATED -> getTopRatedMoviesUseCase(currentPage)
             }
 
-            result.onSuccess {
-                _moviesByCategory[category]?.value = it
+            result.onSuccess { newMovies ->
+                val currentList = _moviesByCategory[category]?.value ?: emptyList()
+                _moviesByCategory[category]?.value = currentList + newMovies
+                _pageByCategory[category] = currentPage + 1
             }.onFailure {
-                _moviesByCategory[category]?.value = emptyList()
+                // Log error if necessary
             }
+
+            isLoadingFlow.value = false
         }
     }
 }
+
+

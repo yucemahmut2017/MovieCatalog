@@ -1,4 +1,3 @@
-
 package com.moviescatalog.features.presentation
 
 import android.annotation.SuppressLint
@@ -6,6 +5,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,16 +37,132 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.moviescatalog.core.util.DateUtils
+import com.moviescatalog.domain.model.Movie
 import com.moviescatalog.features.R
 import com.moviescatalog.features.viewmodel.MovieDetailViewModel
 import java.util.Locale
+
+
+@Composable
+private fun MovieDetailContent(
+    movie: Movie,
+    navController: NavController,
+    paddingValues: PaddingValues
+) {
+    Column(
+        modifier = Modifier
+            .padding(paddingValues)
+            .verticalScroll(rememberScrollState())
+    ) {
+        MovieBackdrop(movie)
+        MovieOverview(movie)
+        PlayMovieButton(movie, navController)
+    }
+}
+
+@Composable
+private fun MovieBackdrop(movie: Movie) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(
+                model = movie.backdropUrl,
+                error = painterResource(id = R.drawable.no_background)
+            ),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 12.dp, bottom = 12.dp)
+        ) {
+            Text(
+                text = movie.title ?: "",
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White
+            )
+
+            movie.rating?.takeIf { it > 0 }?.let { rating ->
+                RatingRow(rating)
+            }
+        }
+
+        movie.releaseDate?.let {
+            Text(
+                text = DateUtils.formatReleaseDate(it),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White,
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 12.dp, bottom = 12.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun RatingRow(rating: Double) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = null,
+            tint = Color.Yellow
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = String.format(Locale.US, "%.1f", rating),
+            color = Color.White
+        )
+    }
+}
+
+@Composable
+private fun MovieOverview(movie: Movie) {
+    val overview = movie.overview
+    if (!overview.isNullOrBlank()) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = overview,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(12.dp)
+        )
+    }
+}
+
+@Composable
+private fun PlayMovieButton(movie: Movie, navController: NavController) {
+    Spacer(modifier = Modifier.height(8.dp))
+    Button(
+        onClick = {
+            val encodedTitle = Uri.encode(movie.title ?: "now")
+            val encodedDesc =
+                Uri.encode(movie.overview.takeIf { it?.isNotBlank() == true } ?: "now")
+            navController.navigate("player/$encodedTitle/$encodedDesc")
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+    ) {
+        Text(text = "Play Movie")
+    }
+}
 
 @SuppressLint("DefaultLocale")
 @Composable
 fun MovieDetailScreen(
     movieId: Int,
     viewModel: MovieDetailViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
+    paddingValues: PaddingValues
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -55,104 +170,8 @@ fun MovieDetailScreen(
         viewModel.loadMovie(movieId)
     }
 
-    uiState?.let { movie ->
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-            ) {
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        model = movie.backdropUrl,
-                        placeholder = painterResource(id = R.drawable.ic_launcher_background),
-                        error = painterResource(id = R.drawable.ic_launcher_background)
-                    ),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(start = 12.dp, bottom = 12.dp)
-                ) {
-                    Text(
-                        text = movie.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = Color.White
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            tint = Color.Yellow
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = String.format(Locale.US, "%.1f", movie.rating),
-                            color = Color.White
-                        )
-
-                    }
-                }
-
-                movie.releaseDate?.let {
-                    val formattedDate = DateUtils.formatReleaseDate(it)
-                    Text(
-                        text = formattedDate,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding( bottom = 12.dp, end = 12.dp)
-                    )
-                }
-
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = movie.overview,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(12.dp)
-            )
-
-
-            Text(
-                text = movie.overview,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    val encodedTitle = Uri.encode(movie.title)
-                    val encodedDesc = Uri.encode(movie.overview)
-                    navController.navigate("player/$encodedTitle/$encodedDesc")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
-            ) {
-                Text(text = "Play Movie")
-            }
-
-        }
-    } ?: run {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
+    when (val movie = uiState) {
+        null -> LoadingScreen()
+        else -> MovieDetailContent(movie, navController, paddingValues)
     }
 }

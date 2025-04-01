@@ -17,22 +17,36 @@ fun MainScreen(padding: PaddingValues) {
 
     NavHost(navController = navController, startDestination = "movie_list") {
         composable("movie_list") {
-            MovieListScreen(navController = navController)
+            MovieListScreen(navController = navController, padding)
         }
         composable("movie_detail/{movieId}") { backStackEntry ->
             val movieId = backStackEntry.arguments?.getString("movieId")?.toInt() ?: 0
-            MovieDetailScreen(movieId = movieId, navController = navController)
+            MovieDetailScreen(
+                movieId = movieId,
+                navController = navController,
+                paddingValues = padding
+            )
         }
         composable(
-            "player/{title}/{desc}",
+            route = "player/{title}/{desc}",
             arguments = listOf(
-                navArgument("title") { type = NavType.StringType },
-                navArgument("desc") { type = NavType.StringType }
+                navArgument("title") {
+                    type = NavType.StringType
+                },
+                navArgument("desc") {
+                    type = NavType.StringType
+                }
             )
         ) { backStackEntry ->
             val title = backStackEntry.arguments?.getString("title") ?: ""
             val desc = backStackEntry.arguments?.getString("desc") ?: ""
-            PlayerScreen(movieTitle = title, movieDescription = desc,navController=navController)
+            PlayerScreen(
+                movieTitle = title,
+                movieDescription = desc,
+                navController = navController,
+                padding = padding
+            )
         }
+
     }
 }

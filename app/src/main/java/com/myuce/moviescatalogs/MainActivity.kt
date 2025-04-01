@@ -1,5 +1,6 @@
 package com.myuce.moviescatalogs
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -42,8 +44,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,32 +73,36 @@ fun MoviesApp() {
         )
     }
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     MoviesCatalogTheme(darkTheme = isCinemaMode) {
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                ThemePreferenceManager.saveCinemaMode(context, !isCinemaMode)
-                            }
-                        }) {
-                            Icon(
-                                imageVector = if (isCinemaMode) Icons.Filled.LightMode else Icons.Filled.DarkMode,
-                                contentDescription = null
+                if (!isLandscape) {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            Text(
+                                text = stringResource(id = R.string.app_name),
+                                style = MaterialTheme.typography.titleLarge
                             )
+                        },
+                        actions = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    ThemePreferenceManager.saveCinemaMode(context, !isCinemaMode)
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = if (isCinemaMode) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                                    contentDescription = null
+                                )
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         ) { padding ->
             MainScreen(padding)
         }
-    }
-}
+    }}

@@ -61,11 +61,19 @@ dependencies {
     // Coil
     implementation(libs.coil)
 
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.accompanist.systemuicontroller)
+
     // ExoPlayer (Media3)
     implementation(libs.media3Exoplayer)
     implementation(libs.media3Ui)
 
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.datasource.okhttp)
+
     implementation(project(":core:util"))
     implementation(project(":domain"))
     implementation(project(":core:di"))
+
+
 }

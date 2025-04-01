@@ -1,6 +1,5 @@
 package com.moviescatalog.features.viewmodel
 
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moviescatalog.domain.model.Movie

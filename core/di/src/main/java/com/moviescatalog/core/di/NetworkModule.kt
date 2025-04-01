@@ -2,6 +2,7 @@ package com.moviescatalog.core.di
 
 
 
+import android.util.Log
 import com.moviescatalog.core.util.Constants
 import com.moviescatalog.data.remote.api.MovieApiService
 import dagger.Module
@@ -27,7 +28,11 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val originalRequest = chain.request()
+                val response = chain.proceed(originalRequest)
+                val responseBody = response.body?.string()
 
+                Log.d("API_RESPONSE", "URL: ${originalRequest.url}")
+                Log.d("API_RESPONSE", "Response: $responseBody")
                 val url = originalRequest.url
                     .newBuilder()
                     .addQueryParameter("api_key", BuildConfig.TMDB_API_KEY)

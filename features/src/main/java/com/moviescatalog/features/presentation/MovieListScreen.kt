@@ -13,12 +13,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.moviescatalog.domain.model.Movie
 import com.moviescatalog.domain.model.MovieCategory
 import com.moviescatalog.features.R
@@ -115,7 +118,6 @@ fun MovieSection(
     }
 }
 
-
 @Composable
 fun MovieCard(
     movie: Movie,
@@ -132,9 +134,13 @@ fun MovieCard(
     ) {
         Image(
             painter = rememberAsyncImagePainter(
-                model = movie.posterUrl,
-                placeholder = painterResource(R.drawable.no_poster_image),
-                error = painterResource(R.drawable.no_poster_image)
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(movie.posterUrl)
+                    .crossfade(true)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .placeholder(R.drawable.no_poster_image)
+                    .error(R.drawable.no_poster_image)
+                    .build()
             ),
             contentDescription = movie.title ?: "Movie Poster",
             contentScale = ContentScale.Crop,
@@ -142,6 +148,7 @@ fun MovieCard(
                 .width(150.dp)
                 .height(225.dp)
         )
+
     }
 }
 

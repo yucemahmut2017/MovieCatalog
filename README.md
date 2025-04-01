@@ -95,13 +95,13 @@ This project is ideal for Android developers who want to:
 
 ---
 
-## 💡 Future Improvements
-- Add Room for local caching
-- Add Pagination for movie lists
-- Implement UI tests with Espresso / Compose Testing
-- Improve error handling and retry mechanisms
 
----
+## ✅ Completed Improvements
+
+- ✅ Added Room for local data caching
+- ✅ Extended offline support (Room + Coil disk cache)
+- ✅ Implemented pagination for movie lists
+- ✅ Added unit tests for repository and use case layers
 
 ## 👥 Contributors
 - Built by [Mahmut Yüce](https://github.com/mahmutyuce) as part of a clean architecture showcase
